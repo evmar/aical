@@ -57,7 +57,6 @@ func eventToURL(event Event) string {
 }
 
 func run() error {
-	// read all of stdin to string
 	input, err := io.ReadAll(os.Stdin)
 	if err != nil {
 		return err
