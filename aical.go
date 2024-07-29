@@ -17,7 +17,13 @@ type Event struct {
 }
 
 func textToJSON(text string) ([]byte, error) {
-	cmd := exec.Command("ai", "-server", "openai", "text", "-sys", "extract all calendar events as json with key 'events', containing a json array.  each entry has keys for name, date, location, and time. use null if not provided.  if year isn't provided, assume 2024.  provide date as yyyymmdd.", "-json", text)
+	cmd := exec.Command("ai", "-server", "openai", "text", "-sys", `extract all calendar events as json with key 'events', containing a json array.
+each entry has keys for name, date, location, and time.
+use null if not provided.
+if year isn't provided, assume 2024.
+provide date as yyyymmdd.
+provide time as hhmm in 24-hour time.
+`, "-json", text)
 	output, err := cmd.Output()
 	if err != nil {
 		errText := ""
@@ -49,7 +55,14 @@ func parseEventsJSON(text []byte) ([]Event, error) {
 func eventToURL(event Event) string {
 	u := "https://www.google.com/calendar/render?action=TEMPLATE"
 	u += "&text=" + url.QueryEscape(event.Name)
-	u += "&dates=" + url.QueryEscape(event.Date)
+	time := event.Date
+	if event.Time != "" {
+		time += "T" + event.Time + "00"
+	} else {
+		time += "T000000"
+	}
+	time += "/" + time
+	u += "&dates=" + url.QueryEscape(time)
 	if event.Location != "" {
 		u += "&location=" + url.QueryEscape(event.Location)
 	}
